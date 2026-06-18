@@ -7,12 +7,14 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
-  engineType      = "client"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // Used only by the Prisma CLI (migrate/generate), resolved relative to this
+  // schema → prisma/dev.db. At runtime the libSQL driver adapter connects
+  // instead (local file or Turso); see lib/db.ts.
+  url      = "file:./dev.db"
 }
 
 model User {

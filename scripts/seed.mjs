@@ -1,10 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSQLite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient({
-  adapter: new PrismaBetterSQLite3({ url: "file:./prisma/dev.db" }),
-});
+const adapter = new PrismaLibSql({ url: process.env.TURSO_DATABASE_URL ?? "file:./prisma/dev.db" });
+const prisma = new PrismaClient({ adapter });
 
 function dayISO(offset = 0) {
   const d = new Date();

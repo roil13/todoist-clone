@@ -12,9 +12,6 @@
     "smoke": "node scripts/smoke.mjs",
     "db:seed": "node scripts/seed.mjs",
     "postinstall": "prisma generate",
-    "cf:build": "opennextjs-cloudflare build",
-    "cf:preview": "opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare deploy",
     "tauri": "tauri",
     "cap": "cap"
   },
@@ -25,8 +22,8 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@prisma/adapter-better-sqlite3": "^6.19.3",
-    "@prisma/adapter-d1": "^6.19.3",
+    "@libsql/client": "^0.17.4",
+    "@prisma/adapter-libsql": "^7.8.0",
     "@prisma/client": "^6.19.3",
     "@tanstack/react-query": "^5.101.0",
     "bcryptjs": "^3.0.3",
@@ -45,7 +42,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.19.11",
     "@tailwindcss/postcss": "^4",
     "@tauri-apps/cli": "^2.11.2",
     "@testing-library/jest-dom": "^6.9.1",
@@ -55,14 +51,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",
-    "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "jsdom": "^29.1.1",
     "playwright": "^1.61.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.9",
-    "wrangler": "^4.100.0"
+    "vitest": "^4.1.9"
   }
 }
