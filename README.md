@@ -1,8 +1,9 @@
 # Tasks — a Todoist clone
 
 A single-user personal task manager that recreates Todoist's **Pro** feature set
-(minus AI and the inherently collaborative features). Built with Next.js, Prisma,
-and SQLite.
+(minus AI and the inherently collaborative features). It's a **local-first PWA**:
+runs fully offline on each device (data in IndexedDB) and syncs across devices
+through your own **Google Drive**. No server, no database service.
 
 ## Features
 
@@ -22,24 +23,22 @@ and SQLite.
 
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · TanStack Query ·
-Prisma 6 (driver adapters) · NextAuth v5 (credentials) · dnd-kit · chrono-node · rrule · Vitest + Playwright.
+Next.js 16 (App Router, static export) · React 19 · TypeScript · Tailwind v4 ·
+TanStack Query · **Dexie/IndexedDB** (on-device store) · dnd-kit · chrono-node ·
+rrule · Vitest + Playwright.
 
-- **Local dev:** SQLite file via Prisma's default engine (zero-config).
-- **Production:** one shared deployment on **Cloudflare** — Workers (via OpenNext) + **D1** (SQLite, via Prisma's D1 driver adapter) + **R2** (attachments).
+- **Data:** local-first in IndexedDB (`lib/local/*`); no server or DB service.
+- **Sync:** last-write-wins merge of one `tasks.json` in the user's **Google Drive**
+  (`drive.appdata`, browser OAuth) — `lib/sync/*`.
 
-## Platforms (Windows + Android + Web, synced)
+## Platforms (laptop + phone + PC, synced)
 
-All three load the **same Cloudflare deployment**, so they share one account/dataset;
-cross-device freshness comes from React Query refetch (focus + 30s interval + reconnect),
-with an offline banner for cached viewing.
+Install the **PWA** on each device (from the GitHub Pages URL); each runs offline
+against its own IndexedDB and syncs opportunistically through your Google Drive
+(on launch, focus, reconnect, and a 60s interval), with an offline banner.
 
-- **Web** — the deployed site.
-- **Windows** — Tauri shell (`src-tauri/`) loading the deployed URL.
-- **Android** — Capacitor shell (`capacitor.config.ts`) loading the deployed URL.
-
-See **[docs/DEPLOY.md](docs/DEPLOY.md)** for the full setup (Cloudflare resources,
-GitHub Actions deploy, native builds, and the first-deploy verification checklist).
+See **[docs/DEPLOY.md](docs/DEPLOY.md)** for the full setup (GitHub Pages, the
+Google OAuth client, install steps, and the cross-device sync acceptance test).
 
 ## Getting started
 

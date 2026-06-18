@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { duplicateProject } from "@/lib/local/repo";
 import {
@@ -17,7 +16,6 @@ import {
   ChevronRight,
   Search,
   Filter as FilterIcon,
-  LogOut,
   Sun,
   Moon,
   MoreHorizontal,
@@ -223,9 +221,6 @@ export function Sidebar({
         <div className="flex items-center gap-1">
           <button onClick={toggleTheme} className="rounded p-1.5 text-text-muted hover:bg-bg-hover" aria-label={t("aria.toggleTheme")}>
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button onClick={() => signOut({ callbackUrl: "/login" })} className="rounded p-1.5 text-text-muted hover:bg-bg-hover" aria-label={t("aria.logout")}>
-            <LogOut size={16} />
           </button>
         </div>
       </div>

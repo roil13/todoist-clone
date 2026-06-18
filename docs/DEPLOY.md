@@ -1,94 +1,81 @@
-# Deploy & multi-platform setup
+# Deploy & setup — local-first PWA + Google Drive sync
 
-The app runs as **one deployment** on Cloudflare (Workers + D1 + R2). The Web,
-Windows (Tauri), and Android (Capacitor) clients all load that one URL and share
-one account/dataset — that's the sync.
+The app is a **local-first PWA**: it runs entirely on each device (data in
+IndexedDB) and **syncs through your own Google Drive**. No server, no database
+service. Only accounts used: **GitHub** (code + free Pages hosting) and
+**Google** (Drive). No credit card.
 
-> **Why deploy via CI?** `@opennextjs/cloudflare`'s build mis-generates the Prisma
-> engine-wasm import path **on Windows**, so the build only works on Linux. The
-> included GitHub Actions workflow builds + deploys on Ubuntu. Local Windows dev
-> (`npm run dev`, local SQLite) is unaffected.
-
-## Prerequisites (you install these)
-
-- A **Cloudflare account** (free tier is fine).
-- For the **Windows app**: [Rust](https://www.rust-lang.org/tools/install) (`rustup`) — Tauri needs it.
-- For the **Android app**: a **JDK 17+** and Android SDK (Android Studio). `ANDROID_HOME` is already set on this machine.
-
-## 1. Create the Cloudflare resources (once)
-
-```bash
-wrangler login                                  # opens browser; your account
-wrangler d1 create todoist-clone-db             # copy the printed database_id
-wrangler r2 bucket create todoist-clone-uploads
+```
+Install PWA on laptop / PC / phone  →  IndexedDB (local, offline)
+                                              │  last-write-wins sync
+                                              ▼
+                         Google Drive  appDataFolder/tasks.json (yours)
 ```
 
-Put the printed **database_id** into `wrangler.toml` (replace `REPLACE_WITH_D1_DATABASE_ID`).
+## 1. Host the PWA on GitHub Pages
 
-Apply the schema to the remote D1:
+- The repo must be **public** for free Pages.
+- In the repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+- The included workflow (`.github/workflows/pages.yml`) builds the static export
+  (with `BASE_PATH=/todoist-clone`) and deploys on every push to `main`.
+- App URL: **`https://roil13.github.io/todoist-clone/`**.
 
-```bash
-wrangler d1 migrations apply todoist-clone-db --remote
-```
+## 2. Create the Google OAuth client (one-time, free)
 
-Set the auth secret (any long random string):
+In [Google Cloud Console](https://console.cloud.google.com/):
+1. Create a project (any name).
+2. **APIs & Services → Library →** enable **Google Drive API**.
+3. **OAuth consent screen**: External; add yourself under **Test users**.
+4. **Credentials → Create credentials → OAuth client ID → Web application**.
+   - **Authorized JavaScript origins**: `https://roil13.github.io` and
+     `http://localhost:3000` (for local dev).
+   - (No redirect URI needed — the GIS token flow uses the origin.)
+5. Copy the **Client ID** (looks like `…apps.googleusercontent.com`).
 
-```bash
-wrangler secret put AUTH_SECRET
-```
+The scope used is `drive.appdata` — the app can only see its own hidden folder,
+nothing else in your Drive.
 
-## 2. Deploy
+## 3. Wire the client ID
 
-**Via GitHub Actions (recommended):** push to `main`. Add these repo secrets first
-(Settings → Secrets → Actions): `CLOUDFLARE_API_TOKEN` (Workers + D1 + R2 edit
-perms), `CLOUDFLARE_ACCOUNT_ID`, `AUTH_SECRET`. The workflow
-(`.github/workflows/deploy.yml`) builds on Ubuntu and deploys.
+- **Production:** repo **Settings → Secrets and variables → Actions → Variables**
+  → new variable `NEXT_PUBLIC_GOOGLE_CLIENT_ID` = your client ID. Re-run the Pages
+  workflow. (A Google *Web* client ID is a public identifier, so a Variable is
+  fine — security comes from the authorized origins.)
+- **Local dev:** put it in `.env`: `NEXT_PUBLIC_GOOGLE_CLIENT_ID=…` (see `.env.example`).
 
-**Or from WSL / any Linux shell:**
+## 4. Install on each device
 
-```bash
-npm ci && npm run cf:deploy        # opennextjs-cloudflare build + deploy
-```
+Open the Pages URL and install:
+- **Desktop (laptop/PC):** Chrome/Edge → install icon in the address bar ("Install Tasks").
+- **Android:** Chrome → menu → "Add to Home screen" / "Install app".
 
-Your app is now at `https://todoist-clone.<your-subdomain>.workers.dev`.
+Then in each install: **Settings → Sync → Connect Google Drive** (sign in once).
 
-## 3. Point the native apps at the deployed URL
-
-Replace `https://REPLACE_WITH_DEPLOYED_URL` in:
-- `src-tauri/tauri.conf.json` → `app.windows[0].url`
-- `capacitor.config.ts` → `server.url`
-
-### Windows (Tauri)
-
-```bash
-npm run tauri build      # produces an .exe / MSI in src-tauri/target/release/bundle
-# or: npm run tauri dev
-```
-
-### Android (Capacitor)
+## Local dev
 
 ```bash
-npx cap sync android
-npx cap open android     # build/run the APK from Android Studio
-# or: cd android && ./gradlew assembleDebug
+npm install
+npm run dev        # http://localhost:3000  (basePath only applies to the prod build)
 ```
 
-## First-deploy verification checklist
+`npm test` runs the unit suite (parsers, recurrence, filters, i18n parity, sync
+merge). `npm run smoke` runs the offline-app Playwright check (dev server must be
+up).
 
-These run on Cloudflare Workers (workerd), which can't be exercised from the
-Windows dev box — verify them against the deployed URL after the first deploy:
+## Verify sync (acceptance test)
 
-- [ ] **Sign up + log in** work (confirms `bcryptjs` runs on Workers; if it fails,
-      switch hashing in `lib/services/user.ts` + `auth.ts` to Web Crypto PBKDF2).
-- [ ] **Create a project + task** (confirms Prisma + D1 query path on Workers).
-- [ ] **Upload a file on a task comment**, then re-open it and download (confirms R2).
-- [ ] **Cross-device sync:** add a task on phone → appears on web/Windows within ~30s
-      (React Query `refetchInterval`/focus). Complete on one → drops off the others.
-- [ ] **Offline banner** shows when the device drops connection.
-- [ ] **Tauri window actually renders the site** (not just compiles) — Tauri 2 treats an
-      external main-window `url` specially; confirm it loads + login works in the desktop window.
-- [ ] **Android WebView loads the site** and login persists.
+With the client ID set, open the app in **two browser profiles** (= two
+"devices") signed into the **same** Google account:
+1. Connect Drive in both (Settings → Sync).
+2. Add a task in profile A → it appears in B within ~60s (or hit "Sync now").
+3. Delete it in B → the tombstone removes it in A.
+4. Go offline in A, edit, come back online → the change flushes on next sync.
 
-If the Workers runtime fights Prisma/D1, the documented fallback (same outcome) is
-**Turso** (libSQL cloud SQLite) on a Node host (Fly.io/Railway) + Cloudflare R2 —
-the Tauri/Capacitor shells just point at the new URL.
+## Notes / scope
+
+- **Attachments are local-only** in v1 (blobs stay on the device that added them;
+  comment text + metadata sync). Syncing blobs as separate Drive files is a follow-up.
+- Sync is **last-write-wins** per record (fine for single-user across devices);
+  no real-time push.
+- Access tokens are kept in memory only; a "connected" flag in localStorage lets
+  the app silently re-acquire a token on launch.

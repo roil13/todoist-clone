@@ -218,6 +218,20 @@ export const he: Messages = {
   // connectivity
   "offline.banner": "לא מקוון — מציג נתונים שמורים",
 
+  // sync
+  "sync.title": "סנכרון (Google Drive)",
+  "sync.desc": "סנכרן את המשימות בין המכשירים דרך ה-Google Drive שלך. הנתונים מקומיים; הסנכרון רק משמר עקביות בין מכשירים.",
+  "sync.connect": "חיבור ל-Google Drive",
+  "sync.disconnect": "ניתוק",
+  "sync.now": "סנכרן עכשיו",
+  "sync.connected": "מחובר",
+  "sync.notConnected": "לא מחובר",
+  "sync.syncing": "מסנכרן…",
+  "sync.lastSynced": "סונכרן לאחרונה {when}",
+  "sync.never": "מעולם לא",
+  "sync.error": "שגיאת סנכרון: {msg}",
+  "sync.notConfigured": "כניסת Google עדיין לא מוגדרת (הגדר NEXT_PUBLIC_GOOGLE_CLIENT_ID). ראה docs/DEPLOY.md.",
+
   // dates
   "date.today": "היום",
   "date.tomorrow": "מחר",

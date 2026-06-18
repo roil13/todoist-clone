@@ -3,8 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { I18nProvider } from "@/lib/i18n";
+import { SyncProvider } from "@/components/sync-provider";
 
-const BASE_PATH = "/todoist-clone";
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -31,7 +32,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>{children}</I18nProvider>
+      <I18nProvider>
+        <SyncProvider>{children}</SyncProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

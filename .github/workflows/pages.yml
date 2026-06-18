@@ -1,0 +1,51 @@
+name: Deploy PWA to GitHub Pages
+
+# Builds the static export and publishes it to GitHub Pages.
+# Set repo Variable NEXT_PUBLIC_GOOGLE_CLIENT_ID (Settings → Secrets and
+# variables → Actions → Variables) to enable Google Drive sync. A Google OAuth
+# *Web* client ID is a public identifier (security is the authorized origin),
+# so a Variable is appropriate. See docs/DEPLOY.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build static export
+        env:
+          BASE_PATH: /todoist-clone
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+        run: npm run build
+      - run: touch out/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

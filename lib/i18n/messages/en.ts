@@ -216,6 +216,20 @@ export const en = {
   // connectivity
   "offline.banner": "Offline — viewing cached data",
 
+  // sync
+  "sync.title": "Sync (Google Drive)",
+  "sync.desc": "Sync your tasks across devices through your own Google Drive. Data is local-first; this just keeps devices in step.",
+  "sync.connect": "Connect Google Drive",
+  "sync.disconnect": "Disconnect",
+  "sync.now": "Sync now",
+  "sync.connected": "Connected",
+  "sync.notConnected": "Not connected",
+  "sync.syncing": "Syncing…",
+  "sync.lastSynced": "Last synced {when}",
+  "sync.never": "never",
+  "sync.error": "Sync error: {msg}",
+  "sync.notConfigured": "Google sign-in isn't configured yet (set NEXT_PUBLIC_GOOGLE_CLIENT_ID). See docs/DEPLOY.md.",
+
   // dates
   "date.today": "Today",
   "date.tomorrow": "Tomorrow",

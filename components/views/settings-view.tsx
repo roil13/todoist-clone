@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Download, Upload } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { getSettings, updateSettings } from "@/lib/local/misc";
 import { buildSnapshot, mergeSnapshot, type Snapshot } from "@/lib/local/snapshot";
 import { applyTheme, getStoredTheme, THEMES, type Theme } from "@/lib/theme";
+import { useSync } from "@/components/sync-provider";
 import { useT, useLocale } from "@/lib/i18n";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
 import type { MessageKey } from "@/lib/i18n/messages/en";
@@ -28,6 +30,7 @@ const THEME_KEY: Record<string, MessageKey> = {
 export function SettingsView() {
   const t = useT();
   const { locale, setLocale } = useLocale();
+  const sync = useSync();
   const qc = useQueryClient();
   const [s, setS] = useState<Settings | null>(null);
   const [saved, setSaved] = useState(false);
@@ -161,6 +164,37 @@ export function SettingsView() {
           />
           {t("settings.vacation")}
         </label>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="mb-1 text-sm font-semibold text-text-muted">{t("sync.title")}</h2>
+        <p className="mb-3 text-xs text-text-faint">{t("sync.desc")}</p>
+        {!sync.configured ? (
+          <p className="rounded-md border border-dashed border-border p-3 text-sm text-text-muted">{t("sync.notConfigured")}</p>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {sync.connected ? (
+                <>
+                  <button onClick={() => sync.sync()} className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent-hover">
+                    {sync.status === "syncing" ? t("sync.syncing") : t("sync.now")}
+                  </button>
+                  <button onClick={sync.disconnect} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover">
+                    {t("sync.disconnect")}
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => sync.connect().catch(() => {})} className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent-hover">
+                  {t("sync.connect")}
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-text-muted">
+              {sync.connected ? `${t("sync.connected")} · ${t("sync.lastSynced", { when: sync.lastSyncedAt ? formatDistanceToNow(new Date(sync.lastSyncedAt), { addSuffix: true }) : t("sync.never") })}` : t("sync.notConnected")}
+            </p>
+            {sync.error && <p className="text-xs text-[#d1453b]">{t("sync.error", { msg: sync.error })}</p>}
+          </div>
+        )}
       </section>
 
       <section>
