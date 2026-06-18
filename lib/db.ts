@@ -2,18 +2,24 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaD1 } from "@prisma/adapter-d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-// On Cloudflare Workers the database is the D1 binding (resolved per request via
-// the OpenNext context); the Prisma wasm engine handles queries through it.
-// Everywhere else (next dev, tests, scripts) we use the default client + engine
-// against the local SQLite file (DATABASE_URL). No native modules are imported,
-// so nothing platform-specific leaks into the Worker bundle. Call sites import
-// the `prisma` proxy unchanged.
+// Prisma runs with `engineType = "client"` (the query compiler — no Rust/wasm
+// engine, no `fs`), so a driver adapter is required everywhere:
+//   • Cloudflare Workers → the D1 binding (resolved per request).
+//   • Local (next dev / scripts) → better-sqlite3 against prisma/dev.db.
+// The better-sqlite3 adapter is a native addon, so it's loaded via a
+// bundler-invisible `eval("require")` inside the local-only branch — it never
+// enters the Workers bundle. Call sites import the `prisma` proxy unchanged.
 
 const globalForPrisma = globalThis as unknown as { localPrisma?: PrismaClient };
 
 function localClient(): PrismaClient {
   if (!globalForPrisma.localPrisma) {
+    const req = eval("require") as NodeRequire;
+    const { PrismaBetterSQLite3 } = req("@prisma/adapter-better-sqlite3");
+    const path = req("node:path") as typeof import("node:path");
+    const url = "file:" + path.join(process.cwd(), "prisma", "dev.db");
     globalForPrisma.localPrisma = new PrismaClient({
+      adapter: new PrismaBetterSQLite3({ url }),
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
   }
