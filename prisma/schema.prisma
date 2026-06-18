@@ -1,0 +1,247 @@
+// Todoist clone — single-user. SQLite for local dev (Postgres-compatible model).
+// Enums are stored as String (SQLite has no native enums via Prisma):
+//   Project.defaultView: "LIST" | "BOARD" | "CALENDAR"
+//   Task.priority:       1 (P1, highest) .. 4 (P4, none)
+//   Reminder.type:       "ABSOLUTE" | "RELATIVE"
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  settings          UserSettings?
+  projects          Project[]
+  sections          Section[]
+  tasks             Task[]
+  labels            Label[]
+  filters           Filter[]
+  comments          Comment[]
+  reminders         Reminder[]
+  activityEvents    ActivityEvent[]
+  karmaEvents       KarmaEvent[]
+  backups           Backup[]
+  pushSubscriptions PushSubscription[]
+}
+
+model UserSettings {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme        String  @default("light")
+  weekStart    Int     @default(1) // 0 = Sunday, 1 = Monday
+  timeZone     String  @default("UTC")
+  dateLanguage String  @default("en")
+  dailyGoal    Int     @default(5)
+  weeklyGoal   Int     @default(30)
+  vacationMode Boolean @default(false)
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  color       String   @default("charcoal")
+  parentId    String?
+  parent      Project? @relation("ProjectTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Project[] @relation("ProjectTree")
+  order       Int      @default(0)
+  isFavorite  Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+  isInbox     Boolean  @default(false)
+  defaultView String   @default("LIST")
+  createdAt   DateTime @default(now())
+
+  sections Section[]
+  tasks    Task[]
+  comments Comment[]
+
+  @@index([userId])
+}
+
+model Section {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  order       Int     @default(0)
+  isCollapsed Boolean @default(false)
+
+  tasks Task[]
+
+  @@index([projectId])
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content        String
+  description    String    @default("")
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sectionId      String?
+  section        Section?  @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  parentId       String?
+  parent         Task?     @relation("TaskTree", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks       Task[]    @relation("TaskTree")
+  priority       Int       @default(4)
+  order          Int       @default(0)
+  dueDate        DateTime? // date-only due (stored at midnight UTC)
+  dueDatetime    DateTime? // set when a specific time is given
+  dueString      String? // original natural-language string
+  dueTimeZone    String?
+  recurrenceRule String? // RRULE string
+  isRecurring    Boolean   @default(false)
+  duration       Int? // amount of time the task takes
+  durationUnit   String? // "minute" | "day"
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  labels    TaskLabel[]
+  comments  Comment[]
+  reminders Reminder[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([sectionId])
+  @@index([parentId])
+}
+
+model Label {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  color      String  @default("charcoal")
+  order      Int     @default(0)
+  isFavorite Boolean @default(false)
+
+  tasks TaskLabel[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model TaskLabel {
+  taskId  String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+  @@index([labelId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  attachments Attachment[]
+
+  @@index([taskId])
+  @@index([projectId])
+}
+
+model Attachment {
+  id        String  @id @default(cuid())
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  fileName  String
+  fileUrl   String
+  mimeType  String
+  size      Int
+}
+
+model Reminder {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId        String
+  task          Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  type          String    @default("ABSOLUTE")
+  triggerAt     DateTime?
+  offsetMinutes Int?
+  lastFiredAt   DateTime?
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+model Filter {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  query      String
+  color      String  @default("charcoal")
+  order      Int     @default(0)
+  isFavorite Boolean @default(false)
+
+  @@index([userId])
+}
+
+model ActivityEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType  String
+  objectType String
+  objectId   String
+  payload    String   @default("{}") // JSON string
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([objectId])
+}
+
+model KarmaEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Backup {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileUrl   String
+  createdAt DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}

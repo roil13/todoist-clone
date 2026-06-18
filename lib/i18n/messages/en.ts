@@ -1,0 +1,226 @@
+export const en = {
+  // common
+  "common.cancel": "Cancel",
+  "common.save": "Save",
+  "common.add": "Add",
+  "common.appName": "Tasks",
+  "common.loading": "Loading…",
+
+  // auth
+  "auth.loginTitle": "Log in",
+  "auth.registerTitle": "Create your account",
+  "auth.login": "Log in",
+  "auth.loggingIn": "Logging in…",
+  "auth.signup": "Sign up",
+  "auth.creating": "Creating…",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.passwordMin": "Password (min 6 characters)",
+  "auth.nameOptional": "Name (optional)",
+  "auth.noAccount": "Don't have an account?",
+  "auth.haveAccount": "Already have an account?",
+  "auth.invalid": "Invalid email or password.",
+  "auth.createError": "Could not create account.",
+  "auth.genericError": "Something went wrong.",
+  "auth.createdPleaseLogin": "Account created — please log in.",
+
+  // nav
+  "nav.today": "Today",
+  "nav.upcoming": "Upcoming",
+  "nav.inbox": "Inbox",
+  "nav.search": "Search",
+  "nav.filtersLabels": "Filters & Labels",
+  "nav.productivity": "Productivity",
+  "nav.activity": "Activity",
+  "nav.settings": "Settings",
+  "nav.addTask": "Add task",
+  "nav.favorites": "Favorites",
+  "nav.projects": "Projects",
+  "nav.labels": "Labels",
+
+  // project menu
+  "project.edit": "Edit",
+  "project.addToFavorites": "Add to favorites",
+  "project.removeFavorite": "Remove favorite",
+  "project.addSubproject": "Add sub-project",
+  "project.duplicate": "Duplicate",
+  "project.exportTemplate": "Export as template",
+  "project.archive": "Archive",
+  "project.delete": "Delete",
+  "project.deleteConfirm": 'Delete project "{name}"?',
+  "label.deleteConfirm": 'Delete label "{name}"?',
+  "filter.deleteConfirm": 'Delete filter "{name}"?',
+
+  // aria
+  "aria.projectOptions": "Project options",
+  "aria.addProject": "Add project",
+  "aria.addLabel": "Add label",
+  "aria.editLabel": "Edit label",
+  "aria.deleteLabel": "Delete label",
+  "aria.toggleTheme": "Toggle theme",
+  "aria.logout": "Log out",
+  "aria.openMenu": "Open menu",
+  "aria.favorite": "Favorite",
+  "aria.edit": "Edit",
+  "aria.delete": "Delete",
+  "aria.close": "Close",
+  "aria.markComplete": "Mark complete",
+  "aria.markIncomplete": "Mark incomplete",
+  "aria.toggleSubtasks": "Toggle sub-tasks",
+  "aria.editTask": "Edit task",
+  "aria.deleteTask": "Delete task",
+  "aria.comments": "Comments",
+  "aria.dragReorder": "Drag to reorder",
+  "aria.attachFiles": "Attach files",
+  "aria.deleteComment": "Delete comment",
+  "aria.deleteReminder": "Delete reminder",
+  "aria.dismiss": "Dismiss",
+
+  // views
+  "today.title": "Today",
+  "today.empty": "Looks like everything's done for today.",
+  "upcoming.title": "Upcoming",
+  "upcoming.empty": "Nothing scheduled ahead.",
+  "inbox.title": "Inbox",
+  "inbox.empty": "Your Inbox is empty.",
+  "view.empty": "No tasks. Enjoy the calm.",
+  "view.addTask": "Add task",
+  "view.list": "List",
+  "view.board": "Board",
+  "view.calendar": "Calendar",
+
+  // search
+  "search.title": "Search",
+  "search.placeholder": "Search tasks…",
+  "search.prompt": "Type to search your tasks.",
+  "search.searching": "Searching…",
+  "search.none": "No matching tasks.",
+
+  // label / filter views
+  "label.none": "No tasks with this label.",
+  "filter.none": "No matching tasks.",
+
+  // filters & labels page
+  "fl.title": "Filters & Labels",
+  "fl.filters": "Filters",
+  "fl.labels": "Labels",
+  "fl.addFilter": "Add filter",
+  "fl.addLabel": "Add label",
+  "fl.noFilters": "No filters yet. Create one like today & p1.",
+  "fl.noLabels": "No labels yet. Add one to tag tasks.",
+
+  // dialogs
+  "dialog.addProject": "Add project",
+  "dialog.editProject": "Edit project",
+  "dialog.name": "Name",
+  "dialog.color": "Color",
+  "dialog.defaultView": "Default view",
+  "dialog.projectName": "Project name",
+  "dialog.addLabel": "Add label",
+  "dialog.editLabel": "Edit label",
+  "dialog.labelName": "Label name",
+  "dialog.addFilter": "Add filter",
+  "dialog.editFilter": "Edit filter",
+  "dialog.filterName": "Filter name",
+  "dialog.query": "Query, e.g. today & p1",
+  "dialog.examples": "Examples:",
+
+  // task
+  "task.taskName": "Task name",
+  "task.description": "Description",
+  "task.addTask": "Add task",
+  "task.smartPlaceholder": 'Task name — try "report tomorrow 5pm #Work @urgent p1 every weekday"',
+  "task.addSubtask": "+ Add sub-task",
+  "task.priority": "Priority {n}",
+  "chip.recurring": "recurring",
+
+  // sections
+  "section.add": "Add section",
+  "section.name": "Section name",
+  "section.rename": "Rename",
+  "section.delete": "Delete section",
+  "section.noSection": "(No section)",
+
+  // comments
+  "comments.none": "No comments yet.",
+  "comments.placeholder": "Add a comment…",
+  "comments.filesAttached": "{n} file(s) attached",
+  "comments.comment": "Comment",
+
+  // reminders
+  "reminders.title": "Reminders",
+  "reminders.add": "Add reminder",
+  "reminders.atTime": "At time of task",
+  "reminders.beforeDue": "{n} min before due",
+  "reminders.relativeTo": "Relative to due time",
+  "reminders.atSpecific": "At a specific time",
+  "reminders.opt.atTime": "At time of task",
+  "reminders.opt.10": "10 minutes before",
+  "reminders.opt.30": "30 minutes before",
+  "reminders.opt.60": "1 hour before",
+  "reminders.opt.1440": "1 day before",
+  "reminder.toastTitle": "Reminder",
+
+  // command menu
+  "cmd.placeholder": "Jump to or run a command…",
+  "cmd.none": "No matches.",
+
+  // settings
+  "settings.title": "Settings",
+  "settings.saved": "Saved",
+  "settings.goals": "Productivity goals",
+  "settings.dailyGoal": "Daily goal",
+  "settings.weeklyGoal": "Weekly goal",
+  "settings.preferences": "Preferences",
+  "settings.theme": "Theme",
+  "settings.language": "Language",
+  "settings.startWeek": "Start week on",
+  "settings.monday": "Monday",
+  "settings.sunday": "Sunday",
+  "settings.vacation": "Vacation mode (pause streak)",
+  "settings.backup": "Backup & restore",
+  "settings.export": "Export backup (JSON)",
+  "settings.import": "Import backup",
+  "settings.importing": "Importing…",
+  "settings.importResult": "Imported {projects} projects and {tasks} tasks.",
+  "settings.importFailed": "Import failed",
+  "settings.importAdditive": "Import is additive — it adds the backup's data alongside what you already have.",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.kraft": "Kraft (warm)",
+  "theme.moonstone": "Moonstone (blue)",
+
+  // productivity
+  "prod.title": "Productivity",
+  "prod.karma": "Karma",
+  "prod.streak": "Streak",
+  "prod.day": "day",
+  "prod.days": "days",
+  "prod.today": "Today",
+  "prod.thisWeek": "This week",
+  "prod.last14": "Last 14 days",
+  "prod.completedTitle": "completed",
+
+  // activity
+  "activity.title": "Activity",
+  "activity.none": "No activity yet.",
+  "activity.task_added": "Added task",
+  "activity.task_updated": "Updated task",
+  "activity.task_completed": "Completed task",
+  "activity.task_uncompleted": "Reopened task",
+  "activity.task_deleted": "Deleted task",
+  "activity.project_added": "Added project",
+  "activity.project_deleted": "Deleted project",
+  "activity.comment_added": "Added comment",
+
+  // connectivity
+  "offline.banner": "Offline — viewing cached data",
+
+  // dates
+  "date.today": "Today",
+  "date.tomorrow": "Tomorrow",
+  "date.yesterday": "Yesterday",
+} as const;
+
+export type MessageKey = keyof typeof en;
+export type Messages = Record<MessageKey, string>;

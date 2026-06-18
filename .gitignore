@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local database & uploads
+*.db
+*.db-journal
+/prisma/*.db
+/var/
+
+# cloudflare / opennext
+/.open-next/
+/.wrangler/
+.dev.vars
+
+# tauri / capacitor build output
+/src-tauri/target/
+/android/
+
+# smoke-test screenshots
+/scripts/*.png

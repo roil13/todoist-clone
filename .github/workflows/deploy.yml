@@ -1,0 +1,40 @@
+name: Deploy to Cloudflare
+
+# Builds and deploys on a Linux runner (avoids the Windows-only OpenNext/Prisma
+# wasm path bug). Requires repo secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
+# and AUTH_SECRET. The D1 database id must be set in wrangler.toml first.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply D1 migrations (remote)
+        run: npx wrangler d1 migrations apply todoist-clone-db --remote
+
+      - name: Build & deploy (OpenNext → Cloudflare Workers)
+        run: npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy
+
+      # After the first deploy the Worker exists, so the secret can be set
+      # (and re-set idempotently on later runs). It applies without a redeploy.
+      - name: Sync AUTH_SECRET to the Worker
+        run: printf '%s' "${{ secrets.AUTH_SECRET }}" | npx wrangler secret put AUTH_SECRET

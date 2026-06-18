@@ -1,0 +1,17 @@
+{
+  "name": "Tasks — a Todoist clone",
+  "short_name": "Tasks",
+  "description": "A personal task manager with projects, labels, filters, reminders and more.",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dc4c3e",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

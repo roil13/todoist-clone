@@ -1,0 +1,26 @@
+name = "todoist-clone"
+main = ".open-next/worker.js"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Non-secret runtime vars. AUTH_SECRET is a Worker *secret* (set via
+# `wrangler secret put AUTH_SECRET`), never committed here.
+[vars]
+AUTH_TRUST_HOST = "true"
+DATABASE_URL = "file:./noop"
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "todoist-clone-db"
+database_id = "3a13a891-7950-405e-a9cd-bec726f47473"
+migrations_dir = "migrations"
+
+# R2 deferred — file attachments disabled until R2 is enabled on the account.
+# To enable: create the bucket, then restore this block + the CI is unaffected.
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "todoist-clone-uploads"

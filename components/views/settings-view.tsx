@@ -1,0 +1,188 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { Download, Upload } from "lucide-react";
+import { api } from "@/lib/fetcher";
+import { applyTheme, getStoredTheme, THEMES, type Theme } from "@/lib/theme";
+import { useT, useLocale } from "@/lib/i18n";
+import { LOCALES, type Locale } from "@/lib/i18n/config";
+import type { MessageKey } from "@/lib/i18n/messages/en";
+
+type Settings = {
+  theme: string;
+  weekStart: number;
+  dailyGoal: number;
+  weeklyGoal: number;
+  vacationMode: boolean;
+};
+
+const THEME_KEY: Record<string, MessageKey> = {
+  light: "theme.light",
+  dark: "theme.dark",
+  kraft: "theme.kraft",
+  moonstone: "theme.moonstone",
+};
+
+export function SettingsView() {
+  const t = useT();
+  const { locale, setLocale } = useLocale();
+  const router = useRouter();
+  const qc = useQueryClient();
+  const [s, setS] = useState<Settings | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>("light");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    api.get<Settings>("/api/settings").then(setS).catch(() => {});
+    setTheme(getStoredTheme());
+  }, []);
+
+  function changeTheme(next: Theme) {
+    setTheme(next);
+    applyTheme(next);
+    api.patch("/api/settings", { theme: next }).catch(() => {});
+  }
+
+  function changeLanguage(next: Locale) {
+    setLocale(next);
+    api.patch("/api/settings", { dateLanguage: next }).catch(() => {});
+    // Re-render server components (titles, productivity, activity) in the new locale.
+    router.refresh();
+  }
+
+  async function save(patch: Partial<Settings>) {
+    if (!s) return;
+    const next = { ...s, ...patch };
+    setS(next);
+    await api.patch("/api/settings", patch);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  }
+
+  async function onImport(file: File) {
+    setImportMsg(t("settings.importing"));
+    try {
+      const text = await file.text();
+      const backup = JSON.parse(text);
+      const res = await api.post<{ projects: number; tasks: number }>("/api/backup/import", backup);
+      qc.invalidateQueries();
+      setImportMsg(t("settings.importResult", { projects: res.projects, tasks: res.tasks }));
+    } catch (e) {
+      setImportMsg(e instanceof Error ? e.message : t("settings.importFailed"));
+    }
+  }
+
+  if (!s) return <div className="p-8 text-sm text-text-muted">{t("common.loading")}</div>;
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-6 md:px-8 md:py-10">
+      <h1 className="mb-6 text-xl font-bold">
+        {t("settings.title")} {saved && <span className="text-xs font-normal text-[#058527]">{t("settings.saved")}</span>}
+      </h1>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-sm font-semibold text-text-muted">{t("settings.goals")}</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <label className="text-sm">
+            {t("settings.dailyGoal")}
+            <input
+              type="number"
+              min={1}
+              value={s.dailyGoal}
+              onChange={(e) => save({ dailyGoal: Number(e.target.value) })}
+              className="mt-1 w-full rounded-md border border-border bg-bg px-3 py-2 outline-none focus:border-accent"
+            />
+          </label>
+          <label className="text-sm">
+            {t("settings.weeklyGoal")}
+            <input
+              type="number"
+              min={1}
+              value={s.weeklyGoal}
+              onChange={(e) => save({ weeklyGoal: Number(e.target.value) })}
+              className="mt-1 w-full rounded-md border border-border bg-bg px-3 py-2 outline-none focus:border-accent"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-sm font-semibold text-text-muted">{t("settings.preferences")}</h2>
+        <label className="mb-3 block text-sm">
+          {t("settings.language")}
+          <select
+            value={locale}
+            onChange={(e) => changeLanguage(e.target.value as Locale)}
+            className="mt-1 w-full rounded-md border border-border bg-bg px-3 py-2 outline-none focus:border-accent"
+          >
+            {LOCALES.map((l) => (
+              <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="mb-3 block text-sm">
+          {t("settings.theme")}
+          <select
+            value={theme}
+            onChange={(e) => changeTheme(e.target.value as Theme)}
+            className="mt-1 w-full rounded-md border border-border bg-bg px-3 py-2 outline-none focus:border-accent"
+          >
+            {THEMES.map((th) => (
+              <option key={th.value} value={th.value}>{t(THEME_KEY[th.value])}</option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-sm">
+          {t("settings.startWeek")}
+          <select
+            value={s.weekStart}
+            onChange={(e) => save({ weekStart: Number(e.target.value) })}
+            className="mt-1 w-full rounded-md border border-border bg-bg px-3 py-2 outline-none focus:border-accent"
+          >
+            <option value={1}>{t("settings.monday")}</option>
+            <option value={0}>{t("settings.sunday")}</option>
+          </select>
+        </label>
+        <label className="mt-3 flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={s.vacationMode}
+            onChange={(e) => save({ vacationMode: e.target.checked })}
+          />
+          {t("settings.vacation")}
+        </label>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold text-text-muted">{t("settings.backup")}</h2>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/api/backup/export"
+            className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover"
+          >
+            <Download size={15} /> {t("settings.export")}
+          </a>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover"
+          >
+            <Upload size={15} /> {t("settings.import")}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0])}
+          />
+        </div>
+        {importMsg && <p className="mt-2 text-sm text-text-muted">{importMsg}</p>}
+        <p className="mt-2 text-xs text-text-faint">{t("settings.importAdditive")}</p>
+      </section>
+    </div>
+  );
+}
