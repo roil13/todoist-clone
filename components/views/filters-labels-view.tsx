@@ -38,7 +38,7 @@ export function FiltersLabelsView() {
             {filters.map((f) => (
               <li key={f.id} className="group flex items-center gap-2 px-3 py-2 text-sm">
                 <FilterIcon size={15} style={{ color: undefined }} className="text-text-muted" />
-                <Link href={`/filter/${f.id}`} className="flex-1">
+                <Link href={`/filter?id=${f.id}`} className="flex-1">
                   <span className="font-medium">{f.name}</span>
                   <span className="ms-2 font-mono text-xs text-text-faint" dir="ltr">{f.query}</span>
                 </Link>
@@ -74,7 +74,7 @@ export function FiltersLabelsView() {
               <li key={l.id} className="group flex items-center gap-2 px-3 py-2 text-sm">
                 <Tag size={15} className="text-text-muted" />
                 <ColorDot color={l.color} />
-                <Link href={`/label/${l.id}`} className="flex-1 font-medium">{l.name}</Link>
+                <Link href={`/label?id=${l.id}`} className="flex-1 font-medium">{l.name}</Link>
                 <button onClick={() => updLabel.mutate({ id: l.id, isFavorite: !l.isFavorite })} className="rounded p-1 text-text-muted hover:bg-bg-hover" aria-label={t("aria.favorite")}>
                   <Star size={14} fill={l.isFavorite ? "currentColor" : "none"} className={l.isFavorite ? "text-yellow-500" : ""} />
                 </button>

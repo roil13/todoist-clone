@@ -8,19 +8,26 @@ import { CommandMenu } from "@/components/command-menu";
 import { QuickAddModal } from "@/components/task/quick-add-modal";
 import { OfflineBanner } from "@/components/offline-banner";
 import { useT } from "@/lib/i18n";
+import { ensureSeed } from "@/lib/local/db";
 import { cn } from "@/lib/utils";
 
 export function AppShell({
-  userName,
+  userName = "You",
   children,
 }: {
-  userName: string;
-  children: React.ReactNode;
+  userName?: string;
+  children?: React.ReactNode;
 }) {
   const t = useT();
+  const [seeded, setSeeded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quickAdd, setQuickAdd] = useState(false);
   const [cmd, setCmd] = useState(false);
+
+  // Create the Inbox + default settings on first run before any query reads.
+  useEffect(() => {
+    ensureSeed().then(() => setSeeded(true));
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -51,6 +58,10 @@ export function AppShell({
       window.removeEventListener("open-quick-add", onOpenQuickAdd);
     };
   }, []);
+
+  if (!seeded) {
+    return <div className="flex h-screen items-center justify-center text-sm text-text-muted">{t("common.loading")}</div>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

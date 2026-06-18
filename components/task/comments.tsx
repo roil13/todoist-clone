@@ -4,7 +4,16 @@ import { useState, useRef } from "react";
 import { Paperclip, Trash2, Send, FileText } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useComments, useAddComment, useDeleteComment } from "@/lib/hooks/comments";
+import { getAttachmentBlob } from "@/lib/local/repo";
 import { useT } from "@/lib/i18n";
+
+async function openAttachment(id: string) {
+  const found = await getAttachmentBlob(id);
+  if (!found) return;
+  const url = URL.createObjectURL(found.blob);
+  window.open(url, "_blank");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
 
 export function Comments({
   taskId,
@@ -48,15 +57,13 @@ export function Comments({
             {c.attachments.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-2">
                 {c.attachments.map((a) => (
-                  <a
+                  <button
                     key={a.id}
-                    href={`/api/attachments/${a.id}`}
-                    target="_blank"
-                    rel="noreferrer"
+                    onClick={() => openAttachment(a.id)}
                     className="inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-xs hover:bg-bg-hover"
                   >
                     <FileText size={11} /> {a.fileName}
-                  </a>
+                  </button>
                 ))}
               </div>
             )}

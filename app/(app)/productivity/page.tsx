@@ -1,6 +1,8 @@
-import { requireUserId } from "@/lib/session";
-import { getProductivity } from "@/lib/services/productivity";
-import { getServerT } from "@/lib/i18n/server";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { getProductivity } from "@/lib/local/misc";
+import { useT } from "@/lib/i18n";
 import { Flame, Trophy } from "lucide-react";
 
 function ProgressBar({ value, goal }: { value: number; goal: number }) {
@@ -15,10 +17,10 @@ function ProgressBar({ value, goal }: { value: number; goal: number }) {
   );
 }
 
-export default async function ProductivityPage() {
-  const userId = await requireUserId();
-  const { t } = await getServerT();
-  const p = await getProductivity(userId);
+export default function ProductivityPage() {
+  const t = useT();
+  const { data: p } = useQuery({ queryKey: ["productivity"], queryFn: () => getProductivity() });
+  if (!p) return <div className="p-8 text-sm text-text-muted">{t("common.loading")}</div>;
   const maxCount = Math.max(1, ...p.dailyCounts.map((d) => d.count));
 
   return (

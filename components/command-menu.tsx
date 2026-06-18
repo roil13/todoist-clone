@@ -52,13 +52,13 @@ export function CommandMenu({
       { id: "productivity", label: t("nav.productivity"), icon: <TrendingUp size={15} />, action: go("/productivity") },
     ];
     (projects ?? []).filter((p) => !p.isInbox).forEach((p) =>
-      base.push({ id: "p" + p.id, label: p.name, icon: <Hash size={15} />, action: go(`/project/${p.id}`) }),
+      base.push({ id: "p" + p.id, label: p.name, icon: <Hash size={15} />, action: go(`/project?id=${p.id}`) }),
     );
     (filters ?? []).forEach((f) =>
-      base.push({ id: "f" + f.id, label: f.name, icon: <FilterIcon size={15} />, action: go(`/filter/${f.id}`) }),
+      base.push({ id: "f" + f.id, label: f.name, icon: <FilterIcon size={15} />, action: go(`/filter?id=${f.id}`) }),
     );
     (labels ?? []).forEach((l) =>
-      base.push({ id: "l" + l.id, label: l.name, icon: <Tag size={15} />, action: go(`/label/${l.id}`) }),
+      base.push({ id: "l" + l.id, label: l.name, icon: <Tag size={15} />, action: go(`/label?id=${l.id}`) }),
     );
     return base;
   }, [projects, labels, filters, router, onClose, onQuickAdd, t]);

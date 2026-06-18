@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/fetcher";
+import { duplicateProject } from "@/lib/local/repo";
 import {
   CalendarDays,
   CalendarClock,
@@ -83,15 +83,14 @@ function ProjectRow({
 }) {
   const t = useT();
   const pathname = usePathname();
-  const active = pathname === `/project/${project.id}`;
+  const active = pathname === `/project?id=${project.id}`;
   const update = useUpdateProject();
   const del = useDeleteProject();
   const qc = useQueryClient();
   const [menu, setMenu] = useState(false);
 
   async function duplicate() {
-    const template = await api.get(`/api/projects/${project.id}/export`);
-    await api.post("/api/templates/import", { template, name: `${project.name} copy` });
+    await duplicateProject(project.id);
     qc.invalidateQueries({ queryKey: ["projects"] });
     qc.invalidateQueries({ queryKey: ["tasks"] });
   }
@@ -105,7 +104,7 @@ function ProjectRow({
       style={{ paddingInlineStart: 8 + depth * 16 }}
     >
       <ColorDot color={project.color} />
-      <Link href={`/project/${project.id}`} onClick={onNavigate} className="flex-1 truncate">
+      <Link href={`/project?id=${project.id}`} onClick={onNavigate} className="flex-1 truncate">
         {project.name}
       </Link>
       {project.isFavorite && <Star size={12} className="text-yellow-500" fill="currentColor" />}
@@ -137,9 +136,6 @@ function ProjectRow({
             <button onClick={() => { duplicate(); setMenu(false); }} className="block w-full px-3 py-1.5 text-start hover:bg-bg-hover">
               {t("project.duplicate")}
             </button>
-            <a href={`/api/projects/${project.id}/export`} download className="block w-full px-3 py-1.5 text-start hover:bg-bg-hover" onClick={() => setMenu(false)}>
-              {t("project.exportTemplate")}
-            </a>
             <button
               onClick={() => { update.mutate({ id: project.id, isArchived: true }); setMenu(false); }}
               className="block w-full px-3 py-1.5 text-start hover:bg-bg-hover"
@@ -249,7 +245,7 @@ export function Sidebar({
       <nav className="flex-1 overflow-y-auto px-2 pb-6">
         <NavLink href="/today" icon={<CalendarDays size={17} />} label={t("nav.today")} onNavigate={onNavigate} />
         <NavLink href="/upcoming" icon={<CalendarClock size={17} />} label={t("nav.upcoming")} onNavigate={onNavigate} />
-        <NavLink href={inbox ? `/project/${inbox.id}` : "/inbox"} icon={<InboxIcon size={17} />} label={t("nav.inbox")} onNavigate={onNavigate} />
+        <NavLink href={inbox ? `/project?id=${inbox.id}` : "/today"} icon={<InboxIcon size={17} />} label={t("nav.inbox")} onNavigate={onNavigate} />
         <NavLink href="/search" icon={<Search size={17} />} label={t("nav.search")} onNavigate={onNavigate} />
         <NavLink href="/filters" icon={<FilterIcon size={17} />} label={t("nav.filtersLabels")} onNavigate={onNavigate} />
         <NavLink href="/productivity" icon={<TrendingUp size={17} />} label={t("nav.productivity")} onNavigate={onNavigate} />
@@ -260,13 +256,13 @@ export function Sidebar({
           <div className="mt-5">
             <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-text-faint">{t("nav.favorites")}</p>
             {favProjects.map((p) => (
-              <NavLink key={p.id} href={`/project/${p.id}`} icon={<ColorDot color={p.color} />} label={p.name} onNavigate={onNavigate} />
+              <NavLink key={p.id} href={`/project?id=${p.id}`} icon={<ColorDot color={p.color} />} label={p.name} onNavigate={onNavigate} />
             ))}
             {favFilters.map((f) => (
-              <NavLink key={f.id} href={`/filter/${f.id}`} icon={<FilterIcon size={15} />} label={f.name} onNavigate={onNavigate} />
+              <NavLink key={f.id} href={`/filter?id=${f.id}`} icon={<FilterIcon size={15} />} label={f.name} onNavigate={onNavigate} />
             ))}
             {favLabels.map((l) => (
-              <NavLink key={l.id} href={`/label/${l.id}`} icon={<Tag size={15} />} label={l.name} onNavigate={onNavigate} />
+              <NavLink key={l.id} href={`/label?id=${l.id}`} icon={<Tag size={15} />} label={l.name} onNavigate={onNavigate} />
             ))}
           </div>
         )}
@@ -300,7 +296,7 @@ export function Sidebar({
             (labels ?? []).map((l) => (
               <div key={l.id} className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-bg-hover">
                 <Hash size={15} className="text-text-muted" />
-                <Link href={`/label/${l.id}`} onClick={onNavigate} className="flex-1 truncate">
+                <Link href={`/label?id=${l.id}`} onClick={onNavigate} className="flex-1 truncate">
                   {l.name}
                 </Link>
                 <button onClick={() => setLabelDialog({ open: true, label: l })} className="rounded p-0.5 text-text-muted opacity-0 hover:bg-bg-hover group-hover:opacity-100" aria-label={t("aria.editLabel")}>

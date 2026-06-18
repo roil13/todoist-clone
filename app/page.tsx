@@ -1,7 +1,12 @@
-import { redirect } from "next/navigation";
-import { getUserId } from "@/lib/session";
+"use client";
 
-export default async function Home() {
-  const userId = await getUserId();
-  redirect(userId ? "/today" : "/login");
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function Home() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/today");
+  }, [router]);
+  return null;
 }

@@ -1,21 +1,17 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/fetcher";
+import * as repo from "@/lib/local/repo";
 import type { ProjectDTO } from "@/lib/types";
 
 export function useProjects() {
-  return useQuery({
-    queryKey: ["projects"],
-    queryFn: () => api.get<ProjectDTO[]>("/api/projects"),
-  });
+  return useQuery({ queryKey: ["projects"], queryFn: () => repo.listProjects() });
 }
 
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Partial<ProjectDTO> & { name: string }) =>
-      api.post<ProjectDTO>("/api/projects", input),
+    mutationFn: (input: Partial<ProjectDTO> & { name: string }) => repo.createProject(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
   });
 }
@@ -23,8 +19,7 @@ export function useCreateProject() {
 export function useUpdateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...input }: Partial<ProjectDTO> & { id: string }) =>
-      api.patch<ProjectDTO>(`/api/projects/${id}`, input),
+    mutationFn: ({ id, ...input }: Partial<ProjectDTO> & { id: string }) => repo.updateProject(id, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
   });
 }
@@ -32,7 +27,7 @@ export function useUpdateProject() {
 export function useDeleteProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete(`/api/projects/${id}`),
+    mutationFn: (id: string) => repo.deleteProject(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       qc.invalidateQueries({ queryKey: ["tasks"] });
@@ -43,8 +38,7 @@ export function useDeleteProject() {
 export function useReorderProjects() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (items: { id: string; order: number; parentId?: string | null }[]) =>
-      api.post("/api/projects/reorder", { items }),
+    mutationFn: (items: { id: string; order: number; parentId?: string | null }[]) => repo.reorderProjects(items),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
   });
 }

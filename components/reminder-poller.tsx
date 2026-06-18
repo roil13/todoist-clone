@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import { api } from "@/lib/fetcher";
+import { consumeDueReminders } from "@/lib/local/misc";
 import { useT } from "@/lib/i18n";
 
 type DueReminder = { id: string; taskId: string; content: string; at: string };
@@ -25,7 +25,7 @@ export function ReminderPoller() {
     let active = true;
     async function poll() {
       try {
-        const due = await api.get<DueReminder[]>("/api/reminders/due");
+        const due = await consumeDueReminders();
         if (!active) return;
         const fresh = due.filter((d) => !seen.current.has(d.id + d.at));
         fresh.forEach((d) => {

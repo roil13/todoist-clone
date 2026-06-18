@@ -1,17 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/fetcher";
-import type { CommentDTO } from "@/lib/types";
+import * as repo from "@/lib/local/repo";
 
 export function useComments(target: { taskId?: string; projectId?: string }) {
-  const params = new URLSearchParams();
-  if (target.taskId) params.set("taskId", target.taskId);
-  if (target.projectId) params.set("projectId", target.projectId);
-  const key = params.toString();
+  const key = target.taskId ?? target.projectId ?? "";
   return useQuery({
     queryKey: ["comments", key],
-    queryFn: () => api.get<CommentDTO[]>(`/api/comments?${key}`),
+    queryFn: () => repo.listComments(target),
     enabled: !!(target.taskId || target.projectId),
   });
 }
@@ -20,17 +16,10 @@ export function useAddComment(target: { taskId?: string; projectId?: string }) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ content, files }: { content: string; files: File[] }) => {
-      const form = new FormData();
-      form.set("content", content);
-      if (target.taskId) form.set("taskId", target.taskId);
-      if (target.projectId) form.set("projectId", target.projectId);
-      files.forEach((f) => form.append("files", f));
-      const res = await fetch("/api/comments", { method: "POST", body: form });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error ?? "Failed to add comment");
-      }
-      return (await res.json()) as CommentDTO;
+      const bufs = await Promise.all(
+        files.map(async (f) => ({ buffer: await f.arrayBuffer(), name: f.name, type: f.type || "application/octet-stream" })),
+      );
+      return repo.addComment({ taskId: target.taskId, projectId: target.projectId, content, files: bufs });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comments"] });
@@ -42,7 +31,7 @@ export function useAddComment(target: { taskId?: string; projectId?: string }) {
 export function useDeleteComment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete(`/api/comments/${id}`),
+    mutationFn: (id: string) => repo.deleteComment(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comments"] });
       qc.invalidateQueries({ queryKey: ["tasks"] });

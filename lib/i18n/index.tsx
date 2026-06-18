@@ -1,17 +1,22 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { en, type MessageKey, type Messages } from "./messages/en";
 import { he } from "./messages/he";
-import {
-  type Locale,
-  dirFor,
-  dateFnsLocale,
-  LOCALE_COOKIE,
-} from "./config";
+import { type Locale, dirFor, dateFnsLocale, isLocale } from "./config";
 import { formatDueDate as fmtDue, formatDayHeading as fmtHeading } from "@/lib/date";
 
 const MESSAGES: Record<Locale, Messages> = { en, he };
+const LOCALE_KEY = "locale";
+
+function storedLocale(): Locale {
+  if (typeof window === "undefined") return "en";
+  try {
+    const v = localStorage.getItem(LOCALE_KEY);
+    if (isLocale(v)) return v;
+  } catch {}
+  return "en";
+}
 
 type Vars = Record<string, string | number>;
 
@@ -32,18 +37,24 @@ type I18nContextValue = {
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({
-  initialLocale,
   children,
 }: {
-  initialLocale: Locale;
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  const [locale, setLocaleState] = useState<Locale>("en");
+
+  // Apply the stored locale on mount (client-only; avoids SSR/export mismatch).
+  useEffect(() => {
+    const l = storedLocale();
+    setLocaleState(l);
+    document.documentElement.lang = l;
+    document.documentElement.dir = dirFor(l);
+  }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     try {
-      document.cookie = `${LOCALE_COOKIE}=${next};path=/;max-age=31536000;samesite=lax`;
+      localStorage.setItem(LOCALE_KEY, next);
       document.documentElement.lang = next;
       document.documentElement.dir = dirFor(next);
     } catch {}

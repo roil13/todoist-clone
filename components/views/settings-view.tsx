@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { Download, Upload } from "lucide-react";
-import { api } from "@/lib/fetcher";
+import { getSettings, updateSettings } from "@/lib/local/misc";
+import { buildSnapshot, mergeSnapshot, type Snapshot } from "@/lib/local/snapshot";
 import { applyTheme, getStoredTheme, THEMES, type Theme } from "@/lib/theme";
 import { useT, useLocale } from "@/lib/i18n";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
@@ -28,7 +28,6 @@ const THEME_KEY: Record<string, MessageKey> = {
 export function SettingsView() {
   const t = useT();
   const { locale, setLocale } = useLocale();
-  const router = useRouter();
   const qc = useQueryClient();
   const [s, setS] = useState<Settings | null>(null);
   const [saved, setSaved] = useState(false);
@@ -37,40 +36,47 @@ export function SettingsView() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.get<Settings>("/api/settings").then(setS).catch(() => {});
+    getSettings().then(setS).catch(() => {});
     setTheme(getStoredTheme());
   }, []);
 
   function changeTheme(next: Theme) {
     setTheme(next);
     applyTheme(next);
-    api.patch("/api/settings", { theme: next }).catch(() => {});
+    updateSettings({ theme: next }).catch(() => {});
   }
 
   function changeLanguage(next: Locale) {
     setLocale(next);
-    api.patch("/api/settings", { dateLanguage: next }).catch(() => {});
-    // Re-render server components (titles, productivity, activity) in the new locale.
-    router.refresh();
+    updateSettings({ dateLanguage: next }).catch(() => {});
   }
 
   async function save(patch: Partial<Settings>) {
     if (!s) return;
-    const next = { ...s, ...patch };
-    setS(next);
-    await api.patch("/api/settings", patch);
+    setS({ ...s, ...patch });
+    await updateSettings(patch);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
+  }
+
+  async function onExport() {
+    const snapshot = await buildSnapshot();
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tasks-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function onImport(file: File) {
     setImportMsg(t("settings.importing"));
     try {
-      const text = await file.text();
-      const backup = JSON.parse(text);
-      const res = await api.post<{ projects: number; tasks: number }>("/api/backup/import", backup);
+      const snapshot = JSON.parse(await file.text()) as Snapshot;
+      const changed = await mergeSnapshot(snapshot);
       qc.invalidateQueries();
-      setImportMsg(t("settings.importResult", { projects: res.projects, tasks: res.tasks }));
+      setImportMsg(t("settings.importResult", { projects: changed, tasks: changed }));
     } catch (e) {
       setImportMsg(e instanceof Error ? e.message : t("settings.importFailed"));
     }
@@ -160,12 +166,12 @@ export function SettingsView() {
       <section>
         <h2 className="mb-3 text-sm font-semibold text-text-muted">{t("settings.backup")}</h2>
         <div className="flex flex-wrap gap-2">
-          <a
-            href="/api/backup/export"
+          <button
+            onClick={onExport}
             className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover"
           >
             <Download size={15} /> {t("settings.export")}
-          </a>
+          </button>
           <button
             onClick={() => fileRef.current?.click()}
             className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover"
