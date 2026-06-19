@@ -11,7 +11,6 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Tasks — a Todoist clone",
   description: "A personal task manager with projects, labels, filters, reminders and more.",
-  manifest: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/manifest.webmanifest`,
   appleWebApp: { capable: true, title: "Tasks" },
 };
 

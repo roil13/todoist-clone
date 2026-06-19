@@ -1,6 +1,9 @@
 // Minimal service worker: network-first with an offline shell fallback.
-const CACHE = "tasks-shell-v1";
-const SHELL = ["/today", "/manifest.webmanifest", "/icons/icon.svg"];
+// Paths are relative to the SW location so they work under the GitHub Pages
+// basePath (/todoist-clone/) without hardcoding it.
+const CACHE = "tasks-shell-v2";
+const SHELL = ["./", "./today", "./manifest.webmanifest", "./icons/icon.svg"];
+const FALLBACK = new URL("./today", self.location).href;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
@@ -27,6 +30,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(request).then((r) => r ?? caches.match("/today"))),
+      .catch(() => caches.match(request).then((r) => r ?? caches.match(FALLBACK))),
   );
 });
