@@ -34,6 +34,7 @@ jobs:
         env:
           BASE_PATH: /todoist-clone
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_ALLOWED_EMAILS: ${{ vars.NEXT_PUBLIC_ALLOWED_EMAILS }}
         run: npm run build
       - run: touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3

@@ -218,6 +218,17 @@ export const he: Messages = {
   // connectivity
   "offline.banner": "לא מקוון — מציג נתונים שמורים",
 
+  // login gate
+  "auth.signInTitle": "כניסה",
+  "auth.signInSubtitle": "היכנס עם חשבון Google שלך כדי להשתמש ב-Tasks.",
+  "auth.signInWithGoogle": "כניסה עם Google",
+  "auth.signingIn": "נכנס…",
+  "auth.denied": "חשבון ה-Google הזה אינו מורשה.",
+  "auth.gateUnconfigured": "הכניסה עדיין לא הוגדרה (הגדר NEXT_PUBLIC_GOOGLE_CLIENT_ID). ראה docs/DEPLOY.md.",
+  "auth.signOut": "התנתקות",
+  "auth.signedInAs": "מחובר כ-{email}",
+  "auth.tryAgain": "נסה שוב",
+
   // sync
   "sync.title": "סנכרון (Google Drive)",
   "sync.desc": "סנכרן את המשימות בין המכשירים דרך ה-Google Drive שלך. הנתונים מקומיים; הסנכרון רק משמר עקביות בין מכשירים.",

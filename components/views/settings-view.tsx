@@ -169,32 +169,21 @@ export function SettingsView() {
       <section className="mb-8">
         <h2 className="mb-1 text-sm font-semibold text-text-muted">{t("sync.title")}</h2>
         <p className="mb-3 text-xs text-text-faint">{t("sync.desc")}</p>
-        {!sync.configured ? (
-          <p className="rounded-md border border-dashed border-border p-3 text-sm text-text-muted">{t("sync.notConfigured")}</p>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              {sync.connected ? (
-                <>
-                  <button onClick={() => sync.sync()} className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent-hover">
-                    {sync.status === "syncing" ? t("sync.syncing") : t("sync.now")}
-                  </button>
-                  <button onClick={sync.disconnect} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover">
-                    {t("sync.disconnect")}
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => sync.connect().catch(() => {})} className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent-hover">
-                  {t("sync.connect")}
-                </button>
-              )}
-            </div>
-            <p className="text-xs text-text-muted">
-              {sync.connected ? `${t("sync.connected")} · ${t("sync.lastSynced", { when: sync.lastSyncedAt ? formatDistanceToNow(new Date(sync.lastSyncedAt), { addSuffix: true }) : t("sync.never") })}` : t("sync.notConnected")}
-            </p>
-            {sync.error && <p className="text-xs text-[#d1453b]">{t("sync.error", { msg: sync.error })}</p>}
+        <div className="space-y-2">
+          {sync.email && <p className="text-sm font-medium">{t("auth.signedInAs", { email: sync.email })}</p>}
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={() => sync.sync()} className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent-hover">
+              {sync.status === "syncing" ? t("sync.syncing") : t("sync.now")}
+            </button>
+            <button onClick={sync.signOut} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-hover">
+              {t("auth.signOut")}
+            </button>
           </div>
-        )}
+          <p className="text-xs text-text-muted">
+            {t("sync.lastSynced", { when: sync.lastSyncedAt ? formatDistanceToNow(new Date(sync.lastSyncedAt), { addSuffix: true }) : t("sync.never") })}
+          </p>
+          {sync.error && <p className="text-xs text-[#d1453b]">{t("sync.error", { msg: sync.error })}</p>}
+        </div>
       </section>
 
       <section>

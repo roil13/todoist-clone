@@ -7,6 +7,8 @@ import { ReminderPoller } from "@/components/reminder-poller";
 import { CommandMenu } from "@/components/command-menu";
 import { QuickAddModal } from "@/components/task/quick-add-modal";
 import { OfflineBanner } from "@/components/offline-banner";
+import { LoginGate } from "@/components/login-gate";
+import { useSync } from "@/components/sync-provider";
 import { useT } from "@/lib/i18n";
 import { ensureSeed } from "@/lib/local/db";
 import { cn } from "@/lib/utils";
@@ -19,6 +21,7 @@ export function AppShell({
   children?: React.ReactNode;
 }) {
   const t = useT();
+  const { authStatus } = useSync();
   const [seeded, setSeeded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quickAdd, setQuickAdd] = useState(false);
@@ -59,8 +62,11 @@ export function AppShell({
     };
   }, []);
 
-  if (!seeded) {
+  if (authStatus === "checking" || !seeded) {
     return <div className="flex h-screen items-center justify-center text-sm text-text-muted">{t("common.loading")}</div>;
+  }
+  if (authStatus !== "authorized") {
+    return <LoginGate />;
   }
 
   return (

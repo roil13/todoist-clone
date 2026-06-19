@@ -32,16 +32,24 @@ In [Google Cloud Console](https://console.cloud.google.com/):
    - (No redirect URI needed — the GIS token flow uses the origin.)
 5. Copy the **Client ID** (looks like `…apps.googleusercontent.com`).
 
-The scope used is `drive.appdata` — the app can only see its own hidden folder,
-nothing else in your Drive.
+Scopes used: `openid email` (to identify the signed-in account for the login
+gate) and `drive.appdata` (the app's own hidden folder only — nothing else in
+your Drive). `openid`/`email` are non-sensitive and need no Google verification.
 
-## 3. Wire the client ID
+> **Sign-in is required to use the app**, not just to sync. Until the client ID
+> below is set, the deployed app shows a "sign-in isn't set up" screen. Only your
+> Google account (a consent-screen **test user**, and — if set — in the allowlist
+> below) can get in. After the first sign-in the app remembers it and opens offline.
 
-- **Production:** repo **Settings → Secrets and variables → Actions → Variables**
-  → new variable `NEXT_PUBLIC_GOOGLE_CLIENT_ID` = your client ID. Re-run the Pages
-  workflow. (A Google *Web* client ID is a public identifier, so a Variable is
-  fine — security comes from the authorized origins.)
-- **Local dev:** put it in `.env`: `NEXT_PUBLIC_GOOGLE_CLIENT_ID=…` (see `.env.example`).
+## 3. Wire the client ID (and optional allowlist)
+
+- **Production:** repo **Settings → Secrets and variables → Actions → Variables** →
+  add `NEXT_PUBLIC_GOOGLE_CLIENT_ID` = your client ID. Optionally add
+  `NEXT_PUBLIC_ALLOWED_EMAILS` = your email(s), comma-separated, to hard-restrict
+  who may sign in (empty = any consent-screen test user). Re-run the Pages workflow.
+  (A Google *Web* client ID is a public identifier — security comes from the
+  authorized origins + consent-screen test users — so a Variable is fine.)
+- **Local dev:** set the same in `.env` (see `.env.example`).
 
 ## 4. Install on each device
 
@@ -49,7 +57,8 @@ Open the Pages URL and install:
 - **Desktop (laptop/PC):** Chrome/Edge → install icon in the address bar ("Install Tasks").
 - **Android:** Chrome → menu → "Add to Home screen" / "Install app".
 
-Then in each install: **Settings → Sync → Connect Google Drive** (sign in once).
+Then **Sign in with Google** on the gate — that single sign-in both unlocks the
+app and connects Drive sync. (Settings → Sync shows the account + "Sign out".)
 
 ## Local dev
 
@@ -66,7 +75,7 @@ up).
 
 With the client ID set, open the app in **two browser profiles** (= two
 "devices") signed into the **same** Google account:
-1. Connect Drive in both (Settings → Sync).
+1. Sign in with Google on the gate in both.
 2. Add a task in profile A → it appears in B within ~60s (or hit "Sync now").
 3. Delete it in B → the tombstone removes it in A.
 4. Go offline in A, edit, come back online → the change flushes on next sync.
@@ -79,3 +88,6 @@ With the client ID set, open the app in **two browser profiles** (= two
   no real-time push.
 - Access tokens are kept in memory only; a "connected" flag in localStorage lets
   the app silently re-acquire a token on launch.
+- **Login is a wall, not at-rest encryption.** It keeps strangers out of the app
+  and binds it to your Google account; it does **not** encrypt local data, so a
+  person on your already-unlocked device could still read IndexedDB via devtools.

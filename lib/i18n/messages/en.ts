@@ -216,6 +216,17 @@ export const en = {
   // connectivity
   "offline.banner": "Offline — viewing cached data",
 
+  // login gate
+  "auth.signInTitle": "Sign in",
+  "auth.signInSubtitle": "Sign in with your Google account to use Tasks.",
+  "auth.signInWithGoogle": "Sign in with Google",
+  "auth.signingIn": "Signing in…",
+  "auth.denied": "This Google account isn't allowed.",
+  "auth.gateUnconfigured": "Sign-in isn't set up yet (set NEXT_PUBLIC_GOOGLE_CLIENT_ID). See docs/DEPLOY.md.",
+  "auth.signOut": "Sign out",
+  "auth.signedInAs": "Signed in as {email}",
+  "auth.tryAgain": "Try again",
+
   // sync
   "sync.title": "Sync (Google Drive)",
   "sync.desc": "Sync your tasks across devices through your own Google Drive. Data is local-first; this just keeps devices in step.",
